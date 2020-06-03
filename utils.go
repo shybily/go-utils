@@ -9,13 +9,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
+)
+
+var (
+	chars = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 )
 
 func RandStr(length int) string {
 	rand.Seed(time.Now().UnixNano())
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-		"abcdefghijklmnopqrstuvwxyz" +
-		"0123456789")
 	var b strings.Builder
 	for i := 0; i < length; i++ {
 		b.WriteRune(chars[rand.Intn(len(chars))])
@@ -40,6 +42,33 @@ func InArray(val interface{}, array interface{}) (exists bool, index int) {
 		}
 	}
 	return
+}
+
+func InArrayString(val string, array []string) (bool, int) {
+	for i := range array {
+		if array[i] == val {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
+func InArrayInt(val int, array []int) (bool, int) {
+	for i := range array {
+		if array[i] == val {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
+func InArrayInt64(val int64, array []int64) (bool, int) {
+	for i := range array {
+		if array[i] == val {
+			return true, i
+		}
+	}
+	return false, -1
 }
 
 func Md5Str(str string) string {
@@ -71,4 +100,8 @@ func FileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func ByteToString(s []byte) string {
+	return *(*string)(unsafe.Pointer(&s))
 }

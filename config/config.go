@@ -1,32 +1,25 @@
 package config
 
 import (
+	"errors"
 	"github.com/shybily/go-utils"
-	"github.com/sirupsen/logrus"
 	"github.com/yookoala/realpath"
 	"gopkg.in/ini.v1"
-	"os"
 )
 
 var Config *ini.Section
 
-func LoadConfig(file string, section string) {
+func LoadConfig(file string, section string) error {
 	filePath, err := realpath.Realpath(file)
 	if err != nil || !utils.FileExists(filePath) {
-		logrus.WithFields(logrus.Fields{
-			"error":   err,
-			"file":    file,
-			"section": section,
-		}).Fatal("load config file failed")
-		os.Exit(1)
+		return errors.New("file not found")
 	}
 	iniConf, err := ini.Load(filePath)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Fatal("load env file failed")
-		os.Exit(1)
+		return err
 	}
 	Config = iniConf.Section(section)
-	logrus.WithFields(logrus.Fields{"file_path": filePath, "section": section}).Info("load config file success")
+	return nil
 }
 
 func Val(key string) string {
