@@ -5,15 +5,19 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync/atomic"
 	"time"
 )
 
 type Conn struct {
+	usedAt    int64 // atomic
 	conn      net.Conn
 	createdAt time.Time
 
 	rd *bufio.Reader
 	wr *bufio.Writer
+
+	pooled bool
 }
 
 func NewConn(conn net.Conn) *Conn {
@@ -26,12 +30,29 @@ func NewConn(conn net.Conn) *Conn {
 	return c
 }
 
+func (c *Conn) UsedAt() time.Time {
+	unix := atomic.LoadInt64(&c.usedAt)
+	return time.Unix(unix, 0)
+}
+
+func (c *Conn) SetUsedAt(tm time.Time) {
+	atomic.StoreInt64(&c.usedAt, tm.Unix())
+}
+
 func (c *Conn) Created(t time.Duration) bool {
 	return time.Now().Sub(c.createdAt) >= t
 }
 
 func (c *Conn) CreatedAt() time.Time {
 	return c.createdAt
+}
+
+func (c *Conn) Reader() *bufio.Reader {
+	return c.rd
+}
+
+func (c *Conn) Writer() *bufio.Writer {
+	return c.wr
 }
 
 func (c *Conn) WriteWithWriter(ctx context.Context, fn func(wr *bufio.Writer) error) error {
