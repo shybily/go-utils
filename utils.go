@@ -105,3 +105,10 @@ func FileExists(filename string) bool {
 func ByteToString(s []byte) string {
 	return *(*string)(unsafe.Pointer(&s))
 }
+
+func If(condition bool, trueVal, falseVal interface{}) interface{} {
+	if condition {
+		return trueVal
+	}
+	return falseVal
+}
