@@ -10,8 +10,8 @@ import (
 )
 
 type Conn struct {
+	net.Conn
 	usedAt    int64 // atomic
-	conn      net.Conn
 	createdAt time.Time
 
 	rd *bufio.Reader
@@ -22,9 +22,9 @@ type Conn struct {
 
 func NewConn(conn net.Conn) *Conn {
 	c := &Conn{
-		conn:      conn,
-		createdAt: time.Now(),
+		Conn:      conn,
 		rd:        bufio.NewReader(conn),
+		createdAt: time.Now(),
 		wr:        bufio.NewWriter(conn),
 	}
 	return c
@@ -95,36 +95,4 @@ func (c *Conn) ReadWithReader(ctx context.Context, fn func(rd *bufio.Reader) err
 		c.rd.Reset(c.rd)
 	}
 	return nil
-}
-
-func (c *Conn) Write(b []byte) (int, error) {
-	return c.conn.Write(b)
-}
-
-func (c *Conn) Read(p []byte) (n int, err error) {
-	return c.conn.Read(p)
-}
-
-func (c *Conn) RemoteAddr() net.Addr {
-	return c.conn.RemoteAddr()
-}
-
-func (c *Conn) LocalAddr() net.Addr {
-	return c.conn.LocalAddr()
-}
-
-func (c *Conn) SetDeadline(t time.Time) error {
-	return c.conn.SetDeadline(t)
-}
-
-func (c *Conn) SetReadDeadline(t time.Time) error {
-	return c.conn.SetReadDeadline(t)
-}
-
-func (c *Conn) SetWriteDeadline(t time.Time) error {
-	return c.conn.SetWriteDeadline(t)
-}
-
-func (c *Conn) Close() error {
-	return c.conn.Close()
 }
