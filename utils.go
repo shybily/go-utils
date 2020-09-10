@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/gob"
 	"fmt"
 	"math/rand"
 	"os"
@@ -132,4 +134,13 @@ func IfString(condition bool, trueVal, falseVal string) string {
 		return trueVal
 	}
 	return falseVal
+}
+
+func DeepCopyByGob(dst, src interface{}) error {
+	var buffer bytes.Buffer
+	if err := gob.NewEncoder(&buffer).Encode(src); err != nil {
+		return err
+	}
+
+	return gob.NewDecoder(&buffer).Decode(dst)
 }
