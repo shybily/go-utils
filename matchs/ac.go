@@ -23,31 +23,25 @@ func newAcNode() *acNode {
 type AcMatcher struct {
 	root *acNode
 	size int
-	mark []bool
 }
 
-func NewAcMatcher() *AcMatcher {
-	return &AcMatcher{
+func NewAcMatcher(dictionary []string) *AcMatcher {
+	m := &AcMatcher{
 		root: newAcNode(),
 		size: 0,
-		mark: make([]bool, 0),
 	}
-}
-
-// initialize the ahocorasick
-func (m *AcMatcher) Build(dictionary []string) {
-	for i, _ := range dictionary {
+	for i := range dictionary {
 		m.insert(dictionary[i])
 	}
 	m.build()
-	m.mark = make([]bool, m.size)
+	return m
 }
 
 // string matchs search
 // return all strings matched as indexes into the original dictionary
 func (m *AcMatcher) Match(s string) []int {
 
-	m.resetMark()
+	mark := make([]bool, m.size)
 
 	var (
 		curNode = m.root
@@ -65,8 +59,8 @@ func (m *AcMatcher) Match(s string) []int {
 		}
 
 		n = curNode
-		for n != m.root && n.count > 0 && !m.mark[n.index] {
-			m.mark[n.index] = true
+		for n != m.root && n.count > 0 && !mark[n.index] {
+			mark[n.index] = true
 			for i := 0; i < n.count; i++ {
 				ret = append(ret, n.index)
 			}
@@ -80,7 +74,7 @@ func (m *AcMatcher) Match(s string) []int {
 // just return the number of len(Match(s))
 func (m *AcMatcher) GetMatchResultSize(s string) int {
 
-	m.resetMark()
+	mark := make([]bool, m.size)
 
 	var (
 		curNode = m.root
@@ -98,8 +92,8 @@ func (m *AcMatcher) GetMatchResultSize(s string) int {
 		}
 
 		n = curNode
-		for n != m.root && n.count > 0 && !m.mark[n.index] {
-			m.mark[n.index] = true
+		for n != m.root && n.count > 0 && !mark[n.index] {
+			mark[n.index] = true
 			num += n.count
 			n = n.fail
 		}
@@ -147,10 +141,4 @@ func (m *AcMatcher) insert(s string) {
 	curNode.count++
 	curNode.index = m.size
 	m.size++
-}
-
-func (m *AcMatcher) resetMark() {
-	for i := 0; i < m.size; i++ {
-		m.mark[i] = false
-	}
 }
