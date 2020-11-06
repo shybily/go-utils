@@ -10,8 +10,7 @@ import (
 const TimeLayout = "2006-01-02 15:04:05"
 const DefaultTimeZone = "Asia/Shanghai"
 
-func ParseWithLocation(name string, timeStr string) (time.Time, error) {
-	locationName := name
+func ParseWithLocation(locationName string, timeStr string) (time.Time, error) {
 	if l, err := time.LoadLocation(locationName); err != nil {
 		return time.Time{}, err
 	} else {
@@ -25,9 +24,13 @@ type JSONTime struct {
 	time.Time
 }
 
-func NewJSONTimeFromString(t string) JSONTime {
-	lt, _ := ParseWithLocation(DefaultTimeZone, t)
-	return NewJSONTimeFromTime(lt)
+func NewJSONTimeFromString(t string) (JSONTime, error) {
+	if lt, err := ParseWithLocation(DefaultTimeZone, t); err != nil {
+		return JSONTime{}, err
+	} else {
+		return NewJSONTimeFromTime(lt), nil
+	}
+
 }
 
 func NewJSONTimeFromTime(time time.Time) JSONTime {
@@ -36,9 +39,8 @@ func NewJSONTimeFromTime(time time.Time) JSONTime {
 }
 
 // MarshalJSON on JSONTime format Time field with %Y-%m-%d %H:%M:%S
-func (t JSONTime) MarshalJSON() ([]byte, error) {
-	formatted := fmt.Sprintf("\"%s\"", t.Format(TimeLayout))
-	return []byte(formatted), nil
+func (t *JSONTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.FormatTime())
 }
 
 func (t *JSONTime) UnmarshalJSON(data []byte) error {
@@ -46,28 +48,27 @@ func (t *JSONTime) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	if t1, err := ParseWithLocation(DefaultTimeZone, s); err != nil {
+	if t1, err := NewJSONTimeFromString(s); err != nil {
 		return err
 	} else {
-		*t = NewJSONTimeFromTime(t1)
+		*t = t1
 	}
 	return nil
 }
 
-func (t JSONTime) FormatTime() string {
+func (t *JSONTime) FormatTime() string {
 	return fmt.Sprintf("%s", t.Format(TimeLayout))
 }
 
 // Value insert timestamp into mysql need this function.
-func (t JSONTime) Value() (driver.Value, error) {
-	var zeroTime time.Time
-	if t.Time.UnixNano() == zeroTime.UnixNano() {
+func (t *JSONTime) Value() (driver.Value, error) {
+	if t.Time.IsZero() {
 		return nil, nil
 	}
 	return t.Time, nil
 }
 
-// Scan valueof time.Time
+// Scan value of time.Time
 func (t *JSONTime) Scan(v interface{}) error {
 	value, ok := v.(time.Time)
 	if ok {
