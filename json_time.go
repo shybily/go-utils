@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -38,6 +39,19 @@ func NewJSONTimeFromTime(time time.Time) JSONTime {
 func (t JSONTime) MarshalJSON() ([]byte, error) {
 	formatted := fmt.Sprintf("\"%s\"", t.Format(TimeLayout))
 	return []byte(formatted), nil
+}
+
+func (t *JSONTime) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if t1, err := ParseWithLocation(DefaultTimeZone, s); err != nil {
+		return err
+	} else {
+		*t = NewJSONTimeFromTime(t1)
+	}
+	return nil
 }
 
 func (t JSONTime) FormatTime() string {
