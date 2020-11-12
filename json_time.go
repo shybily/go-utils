@@ -56,7 +56,7 @@ func (t *JSONTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t *JSONTime) FormatTime() string {
+func (t JSONTime) FormatTime() string {
 	return fmt.Sprintf("%s", t.Format(TimeLayout))
 }
 
