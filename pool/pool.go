@@ -134,6 +134,7 @@ func (p *ConnPool) newConn(ctx context.Context, pooled bool) (*Conn, error) {
 		}
 	}
 	p.connsMu.Unlock()
+	cn.SetUsedAt(time.Now())
 	return cn, nil
 }
 
