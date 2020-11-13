@@ -39,7 +39,7 @@ func NewJSONTimeFromTime(time time.Time) JSONTime {
 }
 
 // MarshalJSON on JSONTime format Time field with %Y-%m-%d %H:%M:%S
-func (t *JSONTime) MarshalJSON() ([]byte, error) {
+func (t JSONTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.FormatTime())
 }
 
@@ -61,7 +61,7 @@ func (t JSONTime) FormatTime() string {
 }
 
 // Value insert timestamp into mysql need this function.
-func (t *JSONTime) Value() (driver.Value, error) {
+func (t JSONTime) Value() (driver.Value, error) {
 	if t.Time.IsZero() {
 		return nil, nil
 	}
